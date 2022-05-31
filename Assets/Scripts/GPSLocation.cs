@@ -20,9 +20,12 @@ public class GPSLocation : MonoBehaviour
     public Text unityLocation;
     public Text objectName;
     public Text distance;
+    // public Text placedGameObject;
+    // public Text placedLocation;
     // Gameobject prefabs
     public GameObject savedPrefab;
     public CanvasGroup createGeoTagCanvas;
+    public GameObject InputObject;
     public InputField geoTagName;
 
     // Local Position variables
@@ -79,12 +82,13 @@ public class GPSLocation : MonoBehaviour
 
     public void SavedLocation()
     {
+        InputObject.SetActive(true);
         // Create geotag
         GeoTag geotag = new GeoTag();
         geotag.latitude = Input.location.lastData.latitude;
         geotag.longitude = Input.location.lastData.longitude;
         geotag.altitude = Input.location.lastData.altitude;
-        // geotag.name = geoTagName.text;
+        geotag.name = geoTagName.text;
 
         // Set Variables for GetDistance()
         lat2 = geotag.latitude;
@@ -94,18 +98,33 @@ public class GPSLocation : MonoBehaviour
         GeoTags.Add(geotag);
 
         // Display saved location
-        objectName.text = "Name: " + geotag.name;
         locationSaved.text = "Latitude: " + geotag.latitude.ToString() + ", Longitude: " + geotag.longitude.ToString() + ", Altitude: " + geotag.altitude.ToString();
         location = GPSEncoder.GPSToUCS(geotag.latitude, geotag.longitude);
         unityLocation.text = "Unity Local Position:" + location.ToString();
 
+        // GPSEncoder.SetLocalOrigin(geotag.latitude, geotag.longitude);
+
+        SpawnPrefab(Camera.main.transform.position, geotag);
+        objectName.text = "Name: " + geotag.name;
+
         // Create prefab
 
-        // var obj = Instantiate(savedPrefab, ARCamera.transform.position + (ARCamera.transform.forward * 1), Quaternion.identity);
+
         // obj.transform.rotation = Quaternion.LookRotation(transform.position - ARCamera.transform.position);
         // obj.GetComponent<GeoTagDisplay>().Initialize(geotag);
 
-
+    }
+    public void EndInput()
+    {
+        InputObject.SetActive(false);
+    }
+    private void SpawnPrefab(Vector3 location, GeoTag geotag)
+    {
+        GameObject instantiatedObj = Instantiate(savedPrefab, location + (Camera.main.transform.forward * 1), Quaternion.identity);
+        instantiatedObj.transform.rotation = Quaternion.LookRotation(transform.position - (Camera.main.transform.position));
+        instantiatedObj.GetComponent<GeoTagDisplay>().Initialize(geotag);
+        // placedGameObject.text = instantiatedObj.name;
+        // placedLocation.text = instantiatedObj.transform.position.ToString();
     }
     private void UpdateGPSData()
     {
